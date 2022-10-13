@@ -152,9 +152,9 @@ type runTestResult struct {
 
 func (r *runTestResult) WriteResult(w io.Writer) {
 	if r.runEnd.Status == "passed" {
-		fmt.Fprintf(w, "%s passed %d tests in %v.\n", r.path, r.runEnd.TestCounts.Passed, r.runtime)
+		fmt.Fprintf(w, "%s passed %d tests in %v.\n", r.path, r.runEnd.TestCounts.Passed, r.runtime.Truncate(time.Millisecond))
 	} else {
-		fmt.Fprintf(w, "%s failed %d / passed %d tests in %v.\n", r.path, r.runEnd.TestCounts.Failed, r.runEnd.TestCounts.Passed, r.runtime)
+		fmt.Fprintf(w, "%s failed %d / passed %d tests in %v.\n", r.path, r.runEnd.TestCounts.Failed, r.runEnd.TestCounts.Passed, r.runtime.Truncate(time.Millisecond))
 	}
 }
 
@@ -253,7 +253,7 @@ func run() error {
 		<-ctx.Done()
 	}
 
-	log.Printf("Took %v.\n", time.Since(binStart))
+	log.Printf("Took %v.\n", time.Since(binStart).Truncate(time.Millisecond))
 	return nil
 }
 
