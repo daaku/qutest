@@ -105,11 +105,8 @@ func HeadlessFalse(a *chromedp.ExecAllocator) {
 func ExposeFunc(name string, f func(string)) chromedp.Action {
 	return chromedp.Tasks{
 		chromedp.ActionFunc(func(ctx context.Context) error {
-			cdpctx := chromedp.FromContext(ctx)
 			chromedp.ListenTarget(ctx, func(ev interface{}) {
 				if ev, ok := ev.(*cdruntime.EventBindingCalled); ok && ev.Name == name {
-					fmt.Printf("+%v\n", ev)
-					fmt.Printf("+%v\n", cdpctx)
 					f(ev.Payload)
 				}
 			})
