@@ -413,8 +413,13 @@ func run() error {
 	printer := make(chan struct{})
 	go func() {
 		defer close(printer)
+
 		for r := range results {
-			r.WriteResult(stripPrefix, os.Stdout)
+			// if we only have 1 test target, don't print this, let the summary below be
+			// the only thing we print. less output noise.
+			if len(tests) != 1 {
+				r.WriteResult(stripPrefix, os.Stdout)
+			}
 		}
 	}()
 
@@ -447,18 +452,24 @@ func run() error {
 	close(results)
 	<-printer
 
-	if a.KeepRunning {
-		fmt.Println("Keeping browser running as requested, press Ctrl-C to quit.")
-		<-ctx.Done()
+	// only print the divider if we're printing summary after more than 1 test
+	// result.
+	if len(tests) != 1 {
+		fmt.Fprintf(os.Stdout, "%s--\n", colorDim)
 	}
 
-	fmt.Fprintf(os.Stdout, "%s--\n", colorDim)
 	if fail := atomic.LoadInt32(&stats.fail); fail == 0 {
 		pass := atomic.LoadInt32(&stats.pass)
 		fmt.Fprintf(os.Stdout, "%s%s✓ %d pass %s%s\n", colorBold, colorGreen, pass, msSince(binStart), colorReset)
 	} else {
 		fmt.Fprintf(os.Stdout, "%s%s✗ %d fail %s%s\n", colorBold, colorRed, fail, msSince(binStart), colorReset)
 	}
+
+	if a.KeepRunning {
+		fmt.Println("Keeping browser running as requested, press Ctrl-C to quit.")
+		<-ctx.Done()
+	}
+
 	return nil
 }
 
