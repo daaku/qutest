@@ -9,18 +9,23 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"log"
 	"mime"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
+	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
 
+	"github.com/bmatcuk/doublestar/v4"
 	cdruntime "github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/jpillora/opts"
@@ -56,10 +61,19 @@ func testServer(ctx context.Context, args *args) (*http.Server, error) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/test/", func(w http.ResponseWriter, r *http.Request) {
 		src := strings.TrimPrefix(r.URL.Path, "/test")
-		err := indexHTML.Execute(w, struct{ TestSrc string }{TestSrc: src})
+		err := indexHTML.Execute(w,
+			struct {
+				TestSrc string
+			}{
+				TestSrc: path.Join("/bundle", src),
+			})
 		if err != nil {
 			log.Println(err)
 		}
+	})
+	mux.HandleFunc("/bundle/", func(w http.ResponseWriter, r *http.Request) {
+		src := strings.TrimPrefix(r.URL.Path, "/bundle")
+		http.ServeFile(w, r, filepath.Join(args.Root, src))
 	})
 	mux.HandleFunc("/qunit.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", mime.TypeByExtension(".js"))
@@ -68,14 +82,6 @@ func testServer(ctx context.Context, args *args) (*http.Server, error) {
 	mux.HandleFunc("/qunit.css", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", mime.TypeByExtension(".css"))
 		w.Write(qunitCSS)
-	})
-	mux.HandleFunc("/sanity-pass.js", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("content-type", mime.TypeByExtension(".js"))
-		w.Write([]byte(`QUnit.test('Should Pass', assert => assert.true(true))`))
-	})
-	mux.HandleFunc("/sanity-fail.js", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("content-type", mime.TypeByExtension(".js"))
-		w.Write([]byte(`QUnit.test('Should Fail', assert => assert.true(false))`))
 	})
 	addr := "127.0.0.1:0"
 	if args.Port != 0 {
@@ -98,6 +104,26 @@ func testServer(ctx context.Context, args *args) (*http.Server, error) {
 		}
 	}()
 	return server, nil
+}
+
+func longestCommonPrefix(vs []string) string {
+	longestPrefix := ""
+	endPrefix := false
+
+	if len(vs) > 0 {
+		sort.Strings(vs)
+		first := vs[0]
+		last := vs[len(vs)-1]
+
+		for i := 0; i < len(first); i++ {
+			if !endPrefix && last[i] == first[i] {
+				longestPrefix += string(last[i])
+			} else {
+				endPrefix = true
+			}
+		}
+	}
+	return longestPrefix
 }
 
 func HeadlessFalse(a *chromedp.ExecAllocator) {
@@ -150,11 +176,12 @@ type runTestResult struct {
 	runtime time.Duration
 }
 
-func (r *runTestResult) WriteResult(w io.Writer) {
+func (r *runTestResult) WriteResult(prefix string, w io.Writer) {
+	path := strings.TrimPrefix(r.path, prefix)
 	if r.runEnd.Status == "passed" {
-		fmt.Fprintf(w, "%s passed %d tests in %v.\n", r.path, r.runEnd.TestCounts.Passed, r.runtime.Truncate(time.Millisecond))
+		fmt.Fprintf(w, "%s passed %d tests in %v.\n", path, r.runEnd.TestCounts.Passed, r.runtime.Truncate(time.Millisecond))
 	} else {
-		fmt.Fprintf(w, "%s failed %d / passed %d tests in %v.\n", r.path, r.runEnd.TestCounts.Failed, r.runEnd.TestCounts.Passed, r.runtime.Truncate(time.Millisecond))
+		fmt.Fprintf(w, "%s failed %d / passed %d tests in %v.\n", path, r.runEnd.TestCounts.Failed, r.runEnd.TestCounts.Passed, r.runtime.Truncate(time.Millisecond))
 	}
 }
 
@@ -179,6 +206,81 @@ func runTests(ctx context.Context, host string, path string) (*runTestResult, er
 	return result, nil
 }
 
+func merge[T any](v [][]T) []T {
+	total := 0
+	for _, a := range v {
+		total += len(a)
+	}
+	final := make([]T, 0, total)
+	for _, a := range v {
+		final = append(final, a...)
+	}
+	return final
+}
+
+func findTests(a *args) ([]string, error) {
+	fsys := os.DirFS(a.Root)
+	excludes := make([]string, len(a.Exclude))
+	for i, ex := range a.Exclude {
+		excludes[i] = filepath.ToSlash(ex)
+	}
+	type result struct {
+		matches []string
+		error   error
+	}
+	results := make(chan result)
+	final := make(chan result)
+	go func() {
+		var err error
+		collect := make([][]string, 0, len(a.Include))
+		for r := range results {
+			if err == nil && r.error != nil {
+				err = r.error
+			}
+			collect = append(collect, r.matches)
+		}
+		final <- result{
+			matches: merge(collect),
+			error:   err,
+		}
+	}()
+	var wg sync.WaitGroup
+	wg.Add(len(a.Include))
+	for _, pattern := range a.Include {
+		pattern := filepath.ToSlash(pattern)
+		go func() {
+			defer wg.Done()
+			var matches []string
+			err := doublestar.GlobWalk(fsys, pattern, func(path string, d fs.DirEntry) error {
+				for i, ex := range excludes {
+					match, err := doublestar.Match(ex, path)
+					if err != nil {
+						return errors.WithMessagef(err, "invalid exclude %q", a.Exclude[i])
+					}
+					if match {
+						if d.IsDir() {
+							return fs.SkipDir
+						}
+						return nil
+					}
+				}
+				if d.Type().IsRegular() {
+					matches = append(matches, path)
+				}
+				return nil
+			})
+			results <- result{
+				error:   err,
+				matches: matches,
+			}
+		}()
+	}
+	wg.Wait()
+	close(results)
+	r := <-final
+	return r.matches, r.error
+}
+
 var binStart = time.Now()
 
 func run() error {
@@ -189,6 +291,9 @@ func run() error {
 		Parallel: runtime.NumCPU(),
 	}
 	opts.Parse(a)
+	if len(a.Include) == 0 {
+		a.Include = defaultInclude[:]
+	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
@@ -210,33 +315,37 @@ func run() error {
 
 	host := "http://" + server.Addr
 
+	// TODO: bootstrap and glob tests in parallel
+
 	// one run is needed to bootstrap the window
 	if err := chromedp.Run(ctx, chromedp.Navigate("about:blank")); err != nil {
 		return errors.WithStack(err)
 	}
 
-	const count = 2
+	tests, err := findTests(a)
+	if err != nil {
+		return err
+	}
+	stripPrefix := longestCommonPrefix(tests)
 
 	results := make(chan *runTestResult)
+	printer := make(chan struct{})
 	go func() {
+		defer close(printer)
 		for r := range results {
-			r.WriteResult(os.Stdout)
+			r.WriteResult(stripPrefix, os.Stdout)
 		}
 	}()
 
 	var wg sync.WaitGroup
-	wg.Add(count)
-	for i := 0; i < count; i++ {
-		i := i
+	wg.Add(len(tests))
+	for _, path := range tests {
+		path := path
 		ctx, cancel := chromedp.NewContext(ctx)
 		go func() {
 			defer wg.Done()
 			if !a.KeepRunning {
 				defer cancel()
-			}
-			path := "/sanity-pass.js"
-			if i == 1 {
-				path = "/sanity-fail.js"
 			}
 			result, err := runTests(ctx, host, path)
 			if err != nil {
@@ -247,6 +356,8 @@ func run() error {
 		}()
 	}
 	wg.Wait()
+	close(results)
+	<-printer
 
 	if a.KeepRunning {
 		fmt.Println("Keeping browser running as requested, press Ctrl-C to quit.")
