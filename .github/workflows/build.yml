@@ -17,4 +17,4 @@ jobs:
       - name: Test
         run: go test -v ./...
       - name: Success Test
-        run: ./qutest tests/should_pass.js test/a_typescript_file.ts
+        run: ./qutest tests/should_pass.js tests/a_typescript_file.ts
