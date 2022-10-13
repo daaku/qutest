@@ -6,6 +6,8 @@ github.com/chromedp/chromedp v0.8.6 h1:KobeeqR2dpfKSG1prS3Y6+FbffMmGC6xmAobRXA9Q
 github.com/chromedp/chromedp v0.8.6/go.mod h1:nBYHoD6YSNzrr82cIeuOzhw1Jo/s2o0QQ+ifTeoCZ+c=
 github.com/chromedp/sysutil v1.0.0 h1:+ZxhTpfpZlmchB58ih/LBHX52ky7w2VhQVKQMucy3Ic=
 github.com/chromedp/sysutil v1.0.0/go.mod h1:kgWmDdq8fTzXYcKIBqIYvRRTnYb9aNS9moAV0xufSww=
+github.com/daaku/ensure v1.0.1 h1:nnbJcD3PSxo6Jm7p8ODuw9WdMCHceF+z4fs+xCbj+PU=
+github.com/daaku/ensure v1.0.1/go.mod h1:DtAAnvKyntGyC/wijZKtC48R79j6YDoePh1/idKgDwc=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/evanw/esbuild v0.15.10 h1:UgUXFYUuoy2NAkwoCFILrShZdH6vcFTRJjOplC69FoA=

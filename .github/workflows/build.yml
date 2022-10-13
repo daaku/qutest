@@ -33,7 +33,7 @@ jobs:
         run: go build -v ./...
       - name: Test
         run: go test -v ./...
-      - name: Success Test
+      - name: Smoke Test
         run: ./qutest tests/should_pass.js tests/a_typescript_file.ts
       - name: Release
         uses: svenstaro/upload-release-action@2.3.0

@@ -456,10 +456,12 @@ func run() error {
 		fmt.Fprintf(os.Stdout, "%s--\n", colorDim)
 	}
 
+	exit := 0
 	if fail := atomic.LoadInt32(&stats.fail); fail == 0 {
 		pass := atomic.LoadInt32(&stats.pass)
 		fmt.Fprintf(os.Stdout, "%s%s✓ %d pass %s%s\n", colorBold, colorGreen, pass, msSince(binStart), colorReset)
 	} else {
+		exit = 1
 		fmt.Fprintf(os.Stdout, "%s%s✗ %d fail %s%s\n", colorBold, colorRed, fail, msSince(binStart), colorReset)
 	}
 
@@ -468,6 +470,7 @@ func run() error {
 		<-ctx.Done()
 	}
 
+	os.Exit(exit)
 	return nil
 }
 
