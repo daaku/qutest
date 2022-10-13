@@ -4,14 +4,17 @@ import (
 	"errors"
 	"os"
 	"os/exec"
-	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/daaku/ensure"
 )
 
 func run(t testing.TB, args ...string) (string, int) {
-	bin := "." + string(filepath.Separator) + "qutest"
+	bin := "./qutest"
+	if runtime.GOOS == "windows" {
+		bin = ".\\qutest.exe"
+	}
 	_, err := os.Stat(bin)
 	ensure.Nil(t, err, "remember to go install before running tests")
 
