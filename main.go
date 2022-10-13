@@ -29,7 +29,10 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 	cdruntime "github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
+	esbapi "github.com/evanw/esbuild/pkg/api"
+	esbcli "github.com/evanw/esbuild/pkg/cli"
 	"github.com/jpillora/opts"
+	"github.com/kgadams/go-shellquote"
 	"github.com/pkg/errors"
 )
 
@@ -65,6 +68,7 @@ type args struct {
 	Root        string        `opts:"help=root directory"`
 	Include     []string      `opts:"mode=arg,help=globs to include"`
 	Exclude     []string      `opts:"help=globs to exclude"`
+	ESBuild     string        `opts:"help=esbuild arguments as single string"`
 	Coverage    bool          `opts:"help=enable code coverage"`
 	Timeout     time.Duration `opts:"help=timeout for all tests"`
 	Parallel    int           `opts:"help=number of parallel tests"`
@@ -75,6 +79,18 @@ type args struct {
 }
 
 func testServer(ctx context.Context, args *args) (*http.Server, error) {
+	esbuildArgs, err := shellquote.Split(args.ESBuild)
+	if err != nil {
+		return nil, errors.WithMessage(err, "invalid format for esbuild arguments")
+	}
+	buildOptions, err := esbcli.ParseBuildOptions(esbuildArgs)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	buildOptions.Sourcemap = esbapi.SourceMapInline
+	buildOptions.Outbase = ""
+	buildOptions.Outdir = ""
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/test/", func(w http.ResponseWriter, r *http.Request) {
 		src := strings.TrimPrefix(r.URL.Path, "/test")
@@ -89,8 +105,19 @@ func testServer(ctx context.Context, args *args) (*http.Server, error) {
 		}
 	})
 	mux.HandleFunc("/bundle/", func(w http.ResponseWriter, r *http.Request) {
-		src := strings.TrimPrefix(r.URL.Path, "/bundle")
-		http.ServeFile(w, r, filepath.Join(args.Root, src))
+		src := strings.TrimPrefix(r.URL.Path, "/bundle/")
+		opts := buildOptions
+		opts.EntryPoints = []string{src}
+		result := esbapi.Build(opts)
+		if len(result.Errors) > 0 {
+			w.WriteHeader(500)
+			e := json.NewEncoder(w)
+			e.SetIndent("", "  ")
+			e.Encode(result.Errors)
+			return
+		}
+		w.Header().Set("content-type", mime.TypeByExtension(".js"))
+		w.Write(result.OutputFiles[0].Contents)
 	})
 	mux.HandleFunc("/qunit.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", mime.TypeByExtension(".js"))

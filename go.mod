@@ -6,8 +6,9 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.2.0
 	github.com/chromedp/cdproto v0.0.0-20220924210414-0e3390be1777
 	github.com/chromedp/chromedp v0.8.6
-	github.com/davecgh/go-spew v1.1.1
+	github.com/evanw/esbuild v0.15.10
 	github.com/jpillora/opts v1.2.2
+	github.com/kgadams/go-shellquote v0.0.0-20220913102612-f87aa9739d7c
 	github.com/pkg/errors v0.9.1
 )
 

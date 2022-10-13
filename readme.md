@@ -14,6 +14,8 @@ A standalone CLI to run [QUnit](QUnit) based tests using the
 
 - hook into console.log and friends
 - get single test file to bundle with esbuild and test
+- implement global timeout
+- write some tests
 - collect coverage (across tests)
 - replace QUnit?
 - support expect style tests?
