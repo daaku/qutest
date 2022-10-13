@@ -5,8 +5,10 @@ package main
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"mime"
 	"net"
@@ -116,6 +118,69 @@ func ExposeFunc(name string, f func(string)) chromedp.Action {
 	}
 }
 
+type qunitRunEnd struct {
+	FullName   []string `json:"fullName"`
+	Runtime    int      `json:"runtime"`
+	Status     string   `json:"status"`
+	TestCounts struct {
+		Passed  int `json:"passed"`
+		Failed  int `json:"failed"`
+		Skipped int `json:"skipped"`
+		Todo    int `json:"todo"`
+		Total   int `json:"total"`
+	}
+	Tests []struct {
+		Name     string   `json:"name"`
+		FullName []string `json:"fullName"`
+		Runtime  int      `json:"runtime"`
+		Status   string   `json:"status"`
+		Errors   []struct {
+			Passed   bool        `json:"passed"`
+			Actual   interface{} `json:"actual"`
+			Expected interface{} `json:"expected"`
+			Stack    string      `json:"string"`
+			Todo     bool        `json:"todo"`
+		} `json:"errors"`
+	} `json:"errors"`
+}
+
+type runTestResult struct {
+	path    string
+	runEnd  qunitRunEnd
+	runtime time.Duration
+}
+
+func (r *runTestResult) WriteResult(w io.Writer) {
+	if r.runEnd.Status == "passed" {
+		fmt.Fprintf(w, "%s passed %d tests in %v.\n", r.path, r.runEnd.TestCounts.Passed, r.runtime)
+	} else {
+		fmt.Fprintf(w, "%s failed %d / passed %d tests in %v.\n", r.path, r.runEnd.TestCounts.Failed, r.runEnd.TestCounts.Passed, r.runtime)
+	}
+}
+
+func runTests(ctx context.Context, host string, path string) (*runTestResult, error) {
+	var start = time.Now()
+	finished := make(chan *runTestResult, 1)
+	tasks := chromedp.Tasks{
+		ExposeFunc("HARNESS_RUN_END", func(s string) {
+			r := &runTestResult{path: path}
+			if err := json.Unmarshal([]byte(s), &r.runEnd); err != nil {
+				log.Fatal("expected error decoding runEnd JSON:", err)
+			}
+			finished <- r
+		}),
+		chromedp.Navigate(host + "/test/" + path),
+	}
+	if err := chromedp.Run(ctx, tasks); err != nil {
+		return nil, errors.WithStack(err)
+	}
+	result := <-finished
+	result.runtime = time.Since(start)
+	return result, nil
+}
+
+var binStart = time.Now()
+
 func run() error {
 	pwd, _ := os.Getwd()
 	a := &args{
@@ -150,8 +215,16 @@ func run() error {
 		return errors.WithStack(err)
 	}
 
+	const count = 2
+
+	results := make(chan *runTestResult)
+	go func() {
+		for r := range results {
+			r.WriteResult(os.Stdout)
+		}
+	}()
+
 	var wg sync.WaitGroup
-	const count = 10
 	wg.Add(count)
 	for i := 0; i < count; i++ {
 		i := i
@@ -161,17 +234,16 @@ func run() error {
 			if !a.KeepRunning {
 				defer cancel()
 			}
-			start := time.Now()
 			path := "/sanity-pass.js"
 			if i == 1 {
 				path = "/sanity-fail.js"
 			}
-			if err := runTests(ctx, host, path); err != nil {
-				log.Println("failed", i, "took", time.Since(start))
-				log.Println(err)
-			} else {
-				log.Println("passed", i, "took", time.Since(start))
+			result, err := runTests(ctx, host, path)
+			if err != nil {
+				log.Printf("expected error running test %q: %v\n", path, err)
+				return
 			}
+			results <- result
 		}()
 	}
 	wg.Wait()
@@ -181,6 +253,7 @@ func run() error {
 		<-ctx.Done()
 	}
 
+	log.Printf("Took %v.\n", time.Since(binStart))
 	return nil
 }
 
@@ -188,29 +261,6 @@ func main() {
 	if err := run(); err != nil {
 		fmt.Fprintf(os.Stderr, "%+v\n", err)
 		os.Exit(1)
-	}
-}
-
-func runTests(ctx context.Context, host string, path string) error {
-	finished := make(chan bool, 1)
-	tasks := chromedp.Tasks{
-		ExposeFunc("HARNESS_RUN_END", func(s string) {
-			if s == "passed" {
-				finished <- true
-			} else {
-				finished <- false
-			}
-		}),
-		chromedp.Navigate(host + "/test/" + path),
-	}
-	if err := chromedp.Run(ctx, tasks); err != nil {
-		return errors.WithStack(err)
-	}
-	status := <-finished
-	if status {
-		return nil
-	} else {
-		return errors.New("tests failed")
 	}
 }
 
@@ -233,7 +283,7 @@ var indexHTML = template.Must(template.New("index").Parse(
   <script>
     if (window.HARNESS_RUN_END) {
       QUnit.on('runEnd', runEnd => {
-				window.HARNESS_RUN_END(runEnd.status)
+				window.HARNESS_RUN_END(JSON.stringify(runEnd))
 			});
     }
   </script>
