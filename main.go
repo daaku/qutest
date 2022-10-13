@@ -22,6 +22,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -43,6 +44,22 @@ var qunitCSS []byte
 var qunitJS []byte
 
 var defaultInclude = []string{"**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"}
+
+const enableTimeit = true
+
+func timeit(label string) func() {
+	if !enableTimeit {
+		return func() {}
+	}
+	start := time.Now()
+	return func() {
+		println(label, "took", msSince(start).String())
+	}
+}
+
+func msSince(start time.Time) time.Duration {
+	return time.Since(start).Truncate(time.Millisecond)
+}
 
 type args struct {
 	Root        string        `opts:"help=root directory"`
@@ -180,12 +197,16 @@ func (r *runTestResult) Pass() bool {
 	return r.runEnd.Status == "passed"
 }
 
+var colorDim = "\033[37m"
+var colorBold = "\033[1m"
 var colorGreen = "\033[32m"
 var colorRed = "\033[31m"
 var colorReset = "\033[0m"
 
 func init() {
 	if _, found := os.LookupEnv("NO_COLOR"); found {
+		colorDim = ""
+		colorBold = ""
 		colorGreen = ""
 		colorRed = ""
 		colorReset = ""
@@ -235,6 +256,7 @@ func merge[T any](v [][]T) []T {
 }
 
 func findTests(a *args) ([]string, error) {
+	defer timeit("findTests")()
 	fsys := os.DirFS(a.Root)
 	excludes := make([]string, len(a.Exclude))
 	for i, ex := range a.Exclude {
@@ -334,15 +356,26 @@ func run() error {
 	// TODO: bootstrap and glob tests in parallel
 
 	// one run is needed to bootstrap the window
-	if err := chromedp.Run(ctx, chromedp.Navigate("about:blank")); err != nil {
-		return errors.WithStack(err)
-	}
+	bootstrap := make(chan error)
+	go func() {
+		defer timeit("browser bootstrap")()
+		bootstrap <- chromedp.Run(ctx, chromedp.Navigate("about:blank"))
+	}()
 
 	tests, err := findTests(a)
 	if err != nil {
 		return err
 	}
+
+	if err := <-bootstrap; err != nil {
+		return errors.WithStack(err)
+	}
+
+	// strip until the top-most shared directory
 	stripPrefix := longestCommonPrefix(tests)
+	if stat, err := os.Stat(filepath.Join(a.Root, stripPrefix)); err != nil || !stat.IsDir() {
+		stripPrefix = filepath.Dir(stripPrefix) + string(filepath.Separator)
+	}
 
 	results := make(chan *runTestResult)
 	printer := make(chan struct{})
@@ -352,6 +385,11 @@ func run() error {
 			r.WriteResult(stripPrefix, os.Stdout)
 		}
 	}()
+
+	var stats struct {
+		fail int32
+		pass int32
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(len(tests))
@@ -368,6 +406,8 @@ func run() error {
 				log.Printf("expected error running test %q: %v\n", path, err)
 				return
 			}
+			atomic.AddInt32(&stats.fail, int32(result.runEnd.TestCounts.Failed))
+			atomic.AddInt32(&stats.pass, int32(result.runEnd.TestCounts.Passed))
 			results <- result
 		}()
 	}
@@ -380,7 +420,13 @@ func run() error {
 		<-ctx.Done()
 	}
 
-	log.Printf("Took %v.\n", time.Since(binStart).Truncate(time.Millisecond))
+	fmt.Fprintf(os.Stdout, "%s--\n", colorDim)
+	if fail := atomic.LoadInt32(&stats.fail); fail == 0 {
+		pass := atomic.LoadInt32(&stats.pass)
+		fmt.Fprintf(os.Stdout, "%s%s✓ %d pass %s%s\n", colorBold, colorGreen, pass, msSince(binStart), colorReset)
+	} else {
+		fmt.Fprintf(os.Stdout, "%s%s✗ %d fail %s%s\n", colorBold, colorRed, fail, msSince(binStart), colorReset)
+	}
 	return nil
 }
 
