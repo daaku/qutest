@@ -14,6 +14,9 @@ A standalone CLI to run [QUnit](QUnit) based tests using the
 ## TODO
 
 - snapshot testing
+  - load and inject snapshots into page before tests are run
+  - collect snapshots as tests are run
+  - include updated snapshots with runEnd callback
 - hook into console.log and friends
 - implement global timeout
 - make failed tests include stack trace
