@@ -29,12 +29,15 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 	cdruntime "github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
+	"github.com/davecgh/go-spew/spew"
 	esbapi "github.com/evanw/esbuild/pkg/api"
 	esbcli "github.com/evanw/esbuild/pkg/cli"
 	"github.com/jpillora/opts"
 	"github.com/kgadams/go-shellquote"
 	"github.com/pkg/errors"
 )
+
+var Dump = spew.Dump
 
 //go:generate mkdir -p assets
 //go:generate curl -o assets/qunit.css https://code.jquery.com/qunit/qunit-2.19.1.css
@@ -87,6 +90,7 @@ func testServer(ctx context.Context, args *args) (*http.Server, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+	buildOptions.Bundle = true
 	buildOptions.Sourcemap = esbapi.SourceMapInline
 	buildOptions.Outbase = ""
 	buildOptions.Outdir = ""
