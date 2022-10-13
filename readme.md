@@ -16,7 +16,6 @@ A standalone CLI to run [QUnit](QUnit) based tests using the
 - snapshot testing
 - hook into console.log and friends
 - implement global timeout
-- write some tests
 - make failed tests include stack trace
 - show pretty diff in comparison failures
 - collect coverage (across tests)

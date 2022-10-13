@@ -4,16 +4,18 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 
 	"github.com/daaku/ensure"
 )
 
 func run(t testing.TB, args ...string) (string, int) {
-	_, err := os.Stat("./qutest")
+	bin := "." + string(filepath.Separator) + "qutest"
+	_, err := os.Stat(bin)
 	ensure.Nil(t, err, "remember to go install before running tests")
 
-	cmd := exec.Command("./qutest", args...)
+	cmd := exec.Command(bin, args...)
 	cmd.Env = append(os.Environ(), "NO_COLOR")
 	out, err := cmd.CombinedOutput()
 	exit := 0
