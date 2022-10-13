@@ -51,6 +51,22 @@ var qunitJS []byte
 
 var defaultInclude = []string{"**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"}
 
+var colorDim = "\033[37m"
+var colorBold = "\033[1m"
+var colorGreen = "\033[32m"
+var colorRed = "\033[31m"
+var colorReset = "\033[0m"
+
+func init() {
+	if _, found := os.LookupEnv("NO_COLOR"); found {
+		colorDim = ""
+		colorBold = ""
+		colorGreen = ""
+		colorRed = ""
+		colorReset = ""
+	}
+}
+
 const enableTimeit = false
 
 func timeit(label string) func() {
@@ -229,22 +245,6 @@ func (r *runTestResult) Pass() bool {
 	return r.runEnd.Status == "passed"
 }
 
-var colorDim = "\033[37m"
-var colorBold = "\033[1m"
-var colorGreen = "\033[32m"
-var colorRed = "\033[31m"
-var colorReset = "\033[0m"
-
-func init() {
-	if _, found := os.LookupEnv("NO_COLOR"); found {
-		colorDim = ""
-		colorBold = ""
-		colorGreen = ""
-		colorRed = ""
-		colorReset = ""
-	}
-}
-
 func (r *runTestResult) WriteResult(prefix string, w io.Writer) {
 	path := strings.TrimPrefix(r.path, prefix)
 	if r.Pass() {
@@ -384,8 +384,6 @@ func run() error {
 	}
 
 	host := "http://" + server.Addr
-
-	// TODO: bootstrap and glob tests in parallel
 
 	// one run is needed to bootstrap the window
 	bootstrap := make(chan error)
