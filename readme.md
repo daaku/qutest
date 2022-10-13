@@ -9,6 +9,7 @@ A standalone CLI to run [QUnit](QUnit) based tests using the
 - Run without Node.
 - Code Coverage reporting.
 - Snapshot support.
+- Support inline tests with code.
 
 ## TODO
 

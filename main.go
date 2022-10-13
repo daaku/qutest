@@ -71,7 +71,7 @@ type args struct {
 	Root        string        `opts:"help=root directory"`
 	Include     []string      `opts:"mode=arg,help=globs to include"`
 	Exclude     []string      `opts:"help=globs to exclude"`
-	ESBuild     string        `opts:"help=esbuild arguments as single string"`
+	ESBuild     string        `opts:"name=esbuild,help=esbuild arguments (as single string argument)"`
 	Coverage    bool          `opts:"help=enable code coverage"`
 	Timeout     time.Duration `opts:"help=timeout for all tests"`
 	Parallel    int           `opts:"help=number of parallel tests"`
