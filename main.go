@@ -94,6 +94,7 @@ func testServer(ctx context.Context, args *args) (*http.Server, error) {
 	buildOptions.Sourcemap = esbapi.SourceMapInline
 	buildOptions.Outbase = ""
 	buildOptions.Outdir = "dist"
+	buildOptions.Format = esbapi.FormatESModule
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/test/", func(w http.ResponseWriter, r *http.Request) {
@@ -491,7 +492,7 @@ var indexHTML = template.Must(template.New("index").Parse(
 			});
     }
   </script>
-  <script src="{{.TestSrc}}"></script>
+  <script type="module" src="{{.TestSrc}}"></script>
 </body>
 
 </html>
