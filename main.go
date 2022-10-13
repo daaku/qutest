@@ -176,12 +176,28 @@ type runTestResult struct {
 	runtime time.Duration
 }
 
+func (r *runTestResult) Pass() bool {
+	return r.runEnd.Status == "passed"
+}
+
+var colorGreen = "\033[32m"
+var colorRed = "\033[31m"
+var colorReset = "\033[0m"
+
+func init() {
+	if _, found := os.LookupEnv("NO_COLOR"); found {
+		colorGreen = ""
+		colorRed = ""
+		colorReset = ""
+	}
+}
+
 func (r *runTestResult) WriteResult(prefix string, w io.Writer) {
 	path := strings.TrimPrefix(r.path, prefix)
-	if r.runEnd.Status == "passed" {
-		fmt.Fprintf(w, "%s passed %d tests in %v.\n", path, r.runEnd.TestCounts.Passed, r.runtime.Truncate(time.Millisecond))
+	if r.Pass() {
+		fmt.Fprintf(w, "%s✓ %d pass %v %s%s\n", colorGreen, r.runEnd.TestCounts.Passed, r.runtime.Truncate(time.Millisecond), path, colorReset)
 	} else {
-		fmt.Fprintf(w, "%s failed %d / passed %d tests in %v.\n", path, r.runEnd.TestCounts.Failed, r.runEnd.TestCounts.Passed, r.runtime.Truncate(time.Millisecond))
+		fmt.Fprintf(w, "%s✗ %d fail %v %s%s\n", colorRed, r.runEnd.TestCounts.Failed, r.runtime.Truncate(time.Millisecond), path, colorReset)
 	}
 }
 
