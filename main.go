@@ -45,7 +45,7 @@ var qunitJS []byte
 
 var defaultInclude = []string{"**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"}
 
-const enableTimeit = true
+const enableTimeit = false
 
 func timeit(label string) func() {
 	if !enableTimeit {
