@@ -93,7 +93,7 @@ func testServer(ctx context.Context, args *args) (*http.Server, error) {
 	buildOptions.Bundle = true
 	buildOptions.Sourcemap = esbapi.SourceMapInline
 	buildOptions.Outbase = ""
-	buildOptions.Outdir = ""
+	buildOptions.Outdir = "dist"
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/test/", func(w http.ResponseWriter, r *http.Request) {
