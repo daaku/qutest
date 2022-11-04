@@ -24,8 +24,8 @@ github.com/hashicorp/go-multierror v1.0.0 h1:iVjPR7a6H0tWELX5NxNe7bYopibicUzc7uP
 github.com/hashicorp/go-multierror v1.0.0/go.mod h1:dHtQlpGsu+cZNNAkkCN/P3hoUDHhCYQXV3UM06sGGrk=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
 github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
-github.com/jpillora/opts v1.2.2 h1:zaJBR16cDyJlzlprS+Nam+KtYaqUUowTy0E94/pBUF0=
-github.com/jpillora/opts v1.2.2/go.mod h1:7p7X/vlpKZmtaDFYKs956EujFqA6aCrOkcCaS6UBcR4=
+github.com/jpillora/opts v1.2.3 h1:Q0YuOM7y0BlunHJ7laR1TUxkUA7xW8A2rciuZ70xs8g=
+github.com/jpillora/opts v1.2.3/go.mod h1:7p7X/vlpKZmtaDFYKs956EujFqA6aCrOkcCaS6UBcR4=
 github.com/kgadams/go-shellquote v0.0.0-20220913102612-f87aa9739d7c h1:FyHun41EZaV7ycasSQBTUYnZGBp6otVULY/x9lmhw/Y=
 github.com/kgadams/go-shellquote v0.0.0-20220913102612-f87aa9739d7c/go.mod h1:2so1J+IzaZ3GS9BFsZBsmrKOkFAVMGUgvVRf2JVrC2s=
 github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80 h1:6Yzfa6GP0rIo/kULo2bwGEkFvCePZ3qHDDTC3/J9Swo=
