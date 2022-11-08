@@ -3,7 +3,7 @@ module github.com/daaku/qutest
 go 1.19
 
 require (
-	github.com/bmatcuk/doublestar/v4 v4.3.0
+	github.com/bmatcuk/doublestar/v4 v4.4.0
 	github.com/chromedp/cdproto v0.0.0-20220924210414-0e3390be1777
 	github.com/chromedp/chromedp v0.8.6
 	github.com/daaku/ensure v1.0.1
