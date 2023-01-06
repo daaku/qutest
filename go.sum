@@ -1,5 +1,5 @@
-github.com/bmatcuk/doublestar/v4 v4.5.0 h1:Qmy99XV6vocmAf0sUOTPlDdvaqUShkQWq/zaE5D4Bv8=
-github.com/bmatcuk/doublestar/v4 v4.5.0/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=
+github.com/bmatcuk/doublestar/v4 v4.6.0 h1:HTuxyug8GyFbRkrffIpzNCSK4luc0TY3wzXvzIZhEXc=
+github.com/bmatcuk/doublestar/v4 v4.6.0/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=
 github.com/chromedp/cdproto v0.0.0-20220924210414-0e3390be1777 h1:nEnjcdmVQjhtQm0RFJxRINMw7lsQ8gidtbpsidiDqpY=
 github.com/chromedp/cdproto v0.0.0-20220924210414-0e3390be1777/go.mod h1:5Y4sD/eXpwrChIuxhSr/G20n9CdbCmoerOHnuAf0Zr0=
 github.com/chromedp/chromedp v0.8.6 h1:KobeeqR2dpfKSG1prS3Y6+FbffMmGC6xmAobRXA9QEQ=
