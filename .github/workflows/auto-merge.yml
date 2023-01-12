@@ -1,0 +1,14 @@
+name: Auto Merge
+on:
+  pull_request_target:
+jobs:
+  merge:
+    name: Comment to Merge PR
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      - name: Comment
+        run: gh pr comment $PR --body "@dependabot merge"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
