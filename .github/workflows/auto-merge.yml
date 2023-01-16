@@ -8,7 +8,6 @@ jobs:
     if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
       - name: Comment
-        run: gh pr comment $PR --body "@dependabot merge"
+        run: gh pr comment ${{ github.event.pull_request.url }} --body "@dependabot merge"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR: ${{ github.event.pull_request.number }}
