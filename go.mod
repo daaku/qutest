@@ -8,7 +8,7 @@ require (
 	github.com/chromedp/chromedp v0.8.7
 	github.com/daaku/ensure v1.0.1
 	github.com/davecgh/go-spew v1.1.1
-	github.com/evanw/esbuild v0.17.8
+	github.com/evanw/esbuild v0.17.9
 	github.com/jpillora/opts v1.2.3
 	github.com/kgadams/go-shellquote v0.0.0-20220913102612-f87aa9739d7c
 	github.com/pkg/errors v0.9.1
