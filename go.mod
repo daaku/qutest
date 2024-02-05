@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.6.1
-	github.com/chromedp/cdproto v0.0.0-20240127002248-bd7a66284627
-	github.com/chromedp/chromedp v0.9.4
+	github.com/chromedp/cdproto v0.0.0-20240202021202-6d0b6a386732
+	github.com/chromedp/chromedp v0.9.5
 	github.com/daaku/ensure v1.0.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/evanw/esbuild v0.20.0
@@ -24,5 +24,5 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/posener/complete v1.2.2-0.20190308074557-af07aa5181b3 // indirect
-	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 )
