@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/bmatcuk/doublestar/v4 v4.7.1
 	github.com/chromedp/cdproto v0.0.0-20241022234722-4d5d5faf59fb
-	github.com/chromedp/chromedp v0.11.1
+	github.com/chromedp/chromedp v0.11.2
 	github.com/daaku/ensure v1.0.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/evanw/esbuild v0.24.0
