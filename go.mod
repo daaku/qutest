@@ -9,7 +9,7 @@ require (
 	github.com/daaku/ensure v1.0.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/evanw/esbuild v0.28.0
-	github.com/jpillora/opts v1.5.0
+	github.com/jpillora/opts v1.5.1
 	github.com/kgadams/go-shellquote v0.0.0-20220913102612-f87aa9739d7c
 	github.com/pkg/errors v0.9.1
 )
