@@ -27,12 +27,14 @@ github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brv
 github.com/hashicorp/go-multierror v1.0.0/go.mod h1:dHtQlpGsu+cZNNAkkCN/P3hoUDHhCYQXV3UM06sGGrk=
 github.com/hashicorp/go-multierror v1.1.1 h1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo=
 github.com/hashicorp/go-multierror v1.1.1/go.mod h1:iw975J/qwKPdAO1clOe2L8331t/9/fmwbPZ6JB6eMoM=
-github.com/jpillora/opts v1.8.1 h1:qfcpc1W1bxRMdnwzFt+j9QTgtoofMtQksPmcDTYhLA8=
-github.com/jpillora/opts v1.8.1/go.mod h1:qImEWPlyKljhTZZlYxhGbZVBTlJTibClZQRZbpNr/QM=
+github.com/jpillora/opts v1.8.2 h1:qrIzq7qHt6t+u8P7PzLZ8b/Ek+VW1NxAD99KwzqO/BU=
+github.com/jpillora/opts v1.8.2/go.mod h1:aXVTjHUqmxQHzxGFraH/gqVzBo6wiiliP0MNH3PtLeE=
 github.com/kgadams/go-shellquote v0.0.0-20220913102612-f87aa9739d7c h1:FyHun41EZaV7ycasSQBTUYnZGBp6otVULY/x9lmhw/Y=
 github.com/kgadams/go-shellquote v0.0.0-20220913102612-f87aa9739d7c/go.mod h1:2so1J+IzaZ3GS9BFsZBsmrKOkFAVMGUgvVRf2JVrC2s=
 github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80 h1:6Yzfa6GP0rIo/kULo2bwGEkFvCePZ3qHDDTC3/J9Swo=
 github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80/go.mod h1:imJHygn/1yfhB7XSJJKlFZKl/J+dCPAknuiaGOshXAs=
+github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
+github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/orisano/pixelmatch v0.0.0-20220722002657-fb0b55479cde h1:x0TT0RDC7UhAVbbWWBzr41ElhJx5tXPWkIHA2HWPRuw=
 github.com/orisano/pixelmatch v0.0.0-20220722002657-fb0b55479cde/go.mod h1:nZgzbfBr3hhjoZnS66nKrHmduYNpc34ny7RK4z5/HM0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
