@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/bmatcuk/doublestar/v4 v4.10.4
 	github.com/chromedp/cdproto v0.159.0
-	github.com/chromedp/chromedp v0.21.0
+	github.com/chromedp/chromedp v0.21.1
 	github.com/daaku/ensure v1.0.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/evanw/esbuild v0.28.2
